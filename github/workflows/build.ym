@@ -1,0 +1,41 @@
+name: Build Saree QR APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: |
+          unzip -q SareeQR_Free_Offline_v3.zip
+          cp -r SareeQR_Free_Offline_v3/* .
+          cp -r SareeQR_Free_Offline_v3/.[!.]* . 2>/dev/null || true
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: |
+          gradle wrapper --gradle-version 8.9
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SareeQR-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
